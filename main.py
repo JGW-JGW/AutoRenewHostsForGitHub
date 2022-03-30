@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Time    : 2022-03-27 10:29
 # Author  : Seto.Kaiba
+import time
 from pprint import pprint
 from typing import List, Dict
 import random as rd
@@ -34,8 +35,8 @@ shutil.copy(hosts_absname, '{}.bak.{}'.format(
 ))
 
 # 轮询备份文件，如果备份文件总大小超出 size_max，则删除旧的备份文件，直到备份文件总大小严格小于 size_low
-size_max = 104857600  # 单位：字节，100 MB
-size_low = 52428800  # 单位：字节，50 MB
+size_max = 10485760  # 单位：字节，10 MB
+size_low = 5242880  # 单位：字节，5 MB
 total_bak_size = 0
 hosts_bak_list = []
 for filename in os.listdir(hosts_dirname):
@@ -53,7 +54,13 @@ if total_bak_size > size_max:
             break
 
 # 获取最新hosts文本内容
-latest_hosts = requests.get('https://raw.hellogithub.com/hosts').text
+response = requests.get('https://raw.hellogithub.com/hosts')
+while response.status_code != 200:
+    time.sleep(rd.randint(1, 10))
+    response = requests.get('https://raw.hellogithub.com/hosts')
+
+latest_hosts = response.text
+
 hosts_tmpname = '{}.tmp'.format(hosts_absname)
 begin_keyword_count = 0
 end_keyword_count = 0
